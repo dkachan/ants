@@ -44,6 +44,8 @@ dt = p.dt;
 % +++++++++++++++++++++++++++++
 nest_center = p.nest_center;
 food_center = p.food_center;  
+food_boundary_radius = p.food_boundary_radius;
+food_boundary_center = p.food_boundary_center;
 nest_radius = p.nest_radius;
 food_radius = p.food_radius;
 %------Obstacles----------
@@ -101,11 +103,17 @@ create_movie = p.create_movie;
 %-----Visualize if necessary---------
 if show_figure
     figure(1)
+    clf(1)
     hold on
     if show_mesh
         plot_mesh_dk(node,element,'b-');
     end
-    circle(food_center(1),food_center(2),food_radius);
+    if food_radius
+        circle(food_center(1),food_center(2),food_radius);
+    end
+    if food_boundary_radius
+        circle(food_boundary_center(1),food_boundary_center(2),food_boundary_radius);
+    end
     circle(nest_center(1),nest_center(2),nest_radius);
     %----Draw obstacles-----
     if ~isempty(obstacles)
@@ -147,8 +155,15 @@ for it = 1:N_time_steps
     pheromone_gradient = pheromones(ant_elements)*dNdx;
     
     %Feed the ants
-    distance_ant_food = sqrt(sum((ant_pos - ones(ant_number,1)*food_center).^2, 2)); 
-    ant_has_food = ant_has_food | (distance_ant_food <= food_radius);
+    if food_radius
+        distance_ant_food = sqrt(sum((ant_pos - ones(ant_number,1)*food_center).^2, 2)); 
+        ant_has_food = ant_has_food | (distance_ant_food <= food_radius);
+    end
+    if food_boundary_radius
+        distance_ant_food = sqrt(sum((ant_pos - ones(ant_number,1)*food_boundary_center).^2, 2)); 
+        ant_has_food = ant_has_food | (distance_ant_food >= food_boundary_radius);
+    end
+        
 
     %Drop off food at the nest
     vec_ant_nest = ant_pos - ones(ant_number,1)*nest_center;

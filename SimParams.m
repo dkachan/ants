@@ -58,6 +58,8 @@ classdef SimParams
         %----food----
         food_center = [60 50];
         food_radius = 6;
+        food_boundary_center = [0 0];
+        food_boundary_radius = 10;
         %----obstacles-----
         obstacles = [];
         
