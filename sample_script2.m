@@ -1,7 +1,7 @@
 p = SimParams();
 p.N_time_steps = 4000;
 p.display_interval = 1;
-p.ant_number = 2;
+p.ant_number = 3;
 p.show_quiver = true;
 p.free_deposition_rate = .0001;
 p.ant_velocity = 1;
