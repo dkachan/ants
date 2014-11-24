@@ -1,7 +1,6 @@
 function  out  = sim_ants( p )
 %SIM_ANTS Simulates ants with parameters p.
 %   Detailed explanation goes here
-
 % ********************************************************************
 % *****                     Parameters                           *****
 % ********************************************************************
@@ -27,7 +26,6 @@ numnode = size(node,1);
 numelem = size(element,1);
 center_node = [mean(reshape(node(element(:,:),1),numelem,4),2) ...
     mean(reshape(node(element(:,:),2),numelem,4),2) ];
-
 %------Basis vectors & gradient------
 [N,dNdxi]=lagrange_basis(elemType,[0 0]);
 dNdx  = dNdxi/(node(element(1,:),:)'*dNdxi);
@@ -154,6 +152,17 @@ for it = 1:N_time_steps
     %find element in which each ant presently resides
     ant_elements = element(floor(ant_pos(:,1)/element_length) + ... 
         1 + floor(ant_pos(:,2)/element_length) * N_element_x, :);
+    ant_elements_num = floor(ant_pos(:,1)/element_length) + ... 
+        1 + floor(ant_pos(:,2)/element_length) * N_element_x;
+    
+    %find the 8 neighbouring elements [right-middle, right-top,
+    % middle-top, left-top, left-middle, left-bottom, middle-bottom,
+    % right-bottom]
+    
+    ant_element_neighbours = [ant_elements_num+1, ant_elements_num+1+N_element_x, ant_elements_num+N_element_x, ...
+        ant_elements_num+N_element_x-1, ant_elements_num-1, ant_elements_num-N_element_x-1, ant_elements_num-N_element_x,...
+        ant_elements_num-N_element_x+1];
+    
     
     if it > release_delay
         delayed_ant_elements = element(floor(delayed_ant_pos(:,1)/element_length) + ... 

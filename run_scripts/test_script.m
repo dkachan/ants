@@ -1,3 +1,7 @@
+
+close all
+clc
+
 p = SimParams();
 p.N_time_steps = 50000;
 p.display_interval = 100;
