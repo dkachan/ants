@@ -38,7 +38,9 @@ classdef SimParams
         nest_attraction_with_food = true;
         reversal_after_food = false;
         ballistic_coupling = true;
-        
+        reverse_at_food = true;
+        angle_max = pi/20;
+        gamma = 2;
         % +++++++++++++++++++++++++++++
         %         Pheromone model
         % +++++++++++++++++++++++++++++
@@ -46,6 +48,7 @@ classdef SimParams
         deposition_rate = .02;
         max_pheromone = false;
         free_deposition_rate = 0;
+        release_delay = 10;
 
         % +++++++++++++++++++++++++++++
         %             Geometry
