@@ -72,7 +72,9 @@ classdef SimParams
         show_figure = true;
         show_mesh = false;
         show_quiver = false;
+        show_pheromones = false;
         display_interval = 10; % timesteps to skip between visualizations.
+        display_pheromones_interval = 100; % timesteps to skip between pheromones visualizations.
         pause_time = .004;
         %-------movies-------
         create_movie = false;

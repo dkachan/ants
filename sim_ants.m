@@ -138,7 +138,9 @@ delta_theta = zeros(ant_number,1);
 show_figure = p.show_figure;
 show_mesh = p.show_mesh;
 show_quiver = p.show_quiver;
+show_pheromones = p.show_pheromones;
 display_interval = p.display_interval;
+display_pheromones_interval = p.display_pheromones_interval;
 pause_time = p.pause_time;
 create_movie = p.create_movie;
 
@@ -397,7 +399,7 @@ for it = 1:N_time_steps
     end
     %------Activate pheremone production.  Simply on if you have food, else off-----
     if it>release_delay
-    pheromone_elements = delayed_ant_elements_num(ant_has_food); 
+%     pheromone_elements = delayed_ant_elements_num(ant_has_food);
     pheromone_elements_withNeighbours = [delayed_ant_elements_num(ant_has_food) element_neighbours(delayed_ant_elements_num(ant_has_food),:)]; 
  
     
@@ -409,7 +411,8 @@ for it = 1:N_time_steps
                 ni = nodes2consider(n);
                 r = sqrt((delayed_ant_pos(ant_has_food,1)-node(element(pheromone_elements_withNeighbours(:,j),ni),1)).^2 ...
         + (delayed_ant_pos(ant_has_food,2)-node(element(pheromone_elements_withNeighbours(:,j),ni),2)).^2);
-                pheromones(element(pheromone_elements,ni)) =  pheromones(element(pheromone_elements,ni)) + deposition_rate./r;
+                pheromones(element(pheromone_elements_withNeighbours(:,j),ni)) = ...
+                    pheromones(element(pheromone_elements_withNeighbours(:,j),ni)) + deposition_rate./r;
             end
         end
     end
@@ -425,9 +428,24 @@ for it = 1:N_time_steps
     end
     
     %-----free production of pheromones without food
-    for i=1:4  
-        pheromones(element(delayed_ant_elements_num(~ant_has_food),i)) =  pheromones(element(delayed_ant_elements_num(~ant_has_food),i)) + p.free_deposition_rate;
+    pheromone_elements_withNeighbours_noFood = [delayed_ant_elements_num(~ant_has_food) element_neighbours(delayed_ant_elements_num(~ant_has_food),:)]; 
+ 
+    
+    n = 0;
+    for j = 1:9
+        for i = 1:number_of_nodes2consider(j);
+            n = n+1;
+            ni = nodes2consider(n);
+            r = sqrt((delayed_ant_pos(~ant_has_food,1)-node(element(pheromone_elements_withNeighbours_noFood(:,j),ni),1)).^2 ...
+                + (delayed_ant_pos(~ant_has_food,2)-node(element(pheromone_elements_withNeighbours_noFood(:,j),ni),2)).^2);
+            pheromones(element(pheromone_elements_withNeighbours_noFood(:,j),ni)) =  pheromones(element(pheromone_elements_withNeighbours_noFood(:,j),ni)) + deposition_rate./r;
+        end
     end
+    
+%     for i=1:4  
+%         pheromones(element(delayed_ant_elements_num(~ant_has_food),i)) =  pheromones(element(delayed_ant_elements_num(~ant_has_food),i)) + p.free_deposition_rate;
+%     end
+    
     %Pheromone volatility
     pheromones = pheromones - pheromones.*ones(numnode,1)*evap_rate*dt;
     end
@@ -466,7 +484,18 @@ for it = 1:N_time_steps
         end
     end
     
-%food_trace(it) = (sum(ant_has_food) / ant_number);   
+    
+    %----------Real time visualization-----------
+    if  show_figure && mod(it,display_pheromones_interval) == 0
+        figure(2)
+        clf(2)
+        if show_pheromones
+            plot_field(node,element,'Q4',pheromones);
+        end
+        pause
+    end
+    
+% food_trace(it) = (sum(ant_has_food) / ant_number);   
 end
 
 
