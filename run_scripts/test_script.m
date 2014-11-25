@@ -1,7 +1,7 @@
 
 close all
 clc
-
+%{
 p = SimParams();
 p.N_time_steps = 50000;
 p.display_interval = 100;
@@ -35,7 +35,7 @@ p.beta = 100 ;
 p.gamma = 8;
 
 sim_ants(p);
-
+%}
 
 
 %{
@@ -76,14 +76,14 @@ p.gamma = 2.5;
 
 %}
 
-%{
 
-great one!!
+
+%great one!!
 
 p = SimParams();
 p.N_time_steps = 50000;
-p.display_interval = 100;
-p.ant_number = 20;
+p.display_interval = 10;
+p.ant_number = 1000;
 p.show_quiver = true;
 p.free_deposition_rate = .5;
 p.deposition_rate = 1;
@@ -99,13 +99,13 @@ p.N_element_x=100;
 p.N_element_y=100;
 p.dt=1;
 p.food_boundary_center = [50 50];
-p.food_boundary_radius = 30;
-p.nest_center = [50 50];
-p.food_radius = 0;
+p.food_boundary_radius = 0;
+p.nest_center = [30 50];
+p.food_radius = 10;
 p.food_center = [70 50];
 p.nest_radius = 10;
-p.noise_strength = 1;
-p.angle_max = pi/80;
+p.noise_strength = .01;
+p.angle_max = pi/800;
 p.reversal_after_food=true;
 p.gradient_coupling = .2;
 p.release_delay = 15;
@@ -114,7 +114,7 @@ p.gamma = 8;
 
 
 sim_ants(p);
-%}
+
 
 %{
 

@@ -26,6 +26,57 @@ numnode = size(node,1);
 numelem = size(element,1);
 center_node = [mean(reshape(node(element(:,:),1),numelem,4),2) ...
     mean(reshape(node(element(:,:),2),numelem,4),2) ];
+
+left_elem = 1:N_element_x:N_element_y*N_element_x;
+bot_elem = 1:N_element_x;
+right_elem = N_element_x:N_element_x:N_element_y*N_element_x;
+top_elem = N_element_y*(N_element_x-1)+1:N_element_y*N_element_x;
+
+corner1 = left_elem(1);
+corner2 = bot_elem(end);
+corner3 = right_elem(end);
+corner4 = top_elem(1);
+
+left_elem = left_elem(2:end);
+right_elem = right_elem(2:end);
+top_elem = top_elem(2:end);
+bot_elem = bot_elem(2:end);
+
+%find the 8 neighbouring elements [right-middle, right-top,
+    % middle-top, left-top, left-middle, left-bottom, middle-bottom,
+    % right-bottom]
+    
+element_list = (1:numelem)';
+element_neighbours = [element_list+1, element_list+1+N_element_x, element_list+N_element_x, ...
+    element_list+N_element_x-1, element_list-1, element_list-N_element_x-1, element_list-N_element_x,...
+    element_list-N_element_x+1];
+% element_neighbours(element_neighbours<0) = element_neighbours(element_neighbours<0) + N_element_x;
+% Adjust for periodic boundary conditions
+
+
+if p.periodic_boundaries 
+    element_neighbours(bot_elem, 6:8) = [element_list(bot_elem)-1 element_list(bot_elem) element_list(bot_elem)+1] + (N_element_x-1)*N_element_y;
+    element_neighbours(right_elem, [1 2 8]) = [element_list(right_elem) element_list(right_elem)+N_element_x element_list(right_elem)-N_element_x]-(N_element_x-1);
+    element_neighbours(top_elem, 2:4) = [element_list(top_elem)+1 element_list(top_elem) element_list(top_elem)-1] - (N_element_x-1)*N_element_y;
+    element_neighbours(left_elem, 4:6) = [element_list(left_elem)+N_element_x element_list(left_elem) element_list(left_elem)-N_element_x]+(N_element_x-1);
+    
+    element_neighbours(corner1,:) = [2, N_element_x+2, N_element_x+1, 2*N_element_x,...
+        N_element_x, N_element_y*N_element_x, (N_element_y-1)*N_element_x+1, (N_element_y-1)*N_element_x+2];
+    element_neighbours(corner2,:) = [1 N_element_x+1, 2*N_element_x, 2*N_element_x-1,...
+        N_element_x-1,N_element_y*N_element_x-1, N_element_y*N_element_x, (N_element_y-1)*N_element_x+1];
+    element_neighbours(corner3,:) = [(N_element_y-1)*N_element_x+1, 1, N_element_x,...
+        N_element_x-1, N_element_y*N_element_x-1,(N_element_y-1)*N_element_x-1,(N_element_y-1)*N_element_x,(N_element_y-2)*N_element_x+1];
+    element_neighbours(corner4,:) = [(N_element_y-1)*N_element_x+2, 2, 1,...
+        N_element_x, N_element_y*N_element_x, (N_element_y-1)*N_element_x, (N_element_y-2)*N_element_x+1,(N_element_y-2)*N_element_x+2];
+    
+end
+
+% 
+% element_neighbours(1,:)
+% element_neighbours(100,:)
+% element_neighbours(10000,:)
+% element_neighbours(9901,:)
+% pause
 %------Basis vectors & gradient------
 [N,dNdxi]=lagrange_basis(elemType,[0 0]);
 dNdx  = dNdxi/(node(element(1,:),:)'*dNdxi);
@@ -152,21 +203,10 @@ for it = 1:N_time_steps
     %find element in which each ant presently resides
     ant_elements = element(floor(ant_pos(:,1)/element_length) + ... 
         1 + floor(ant_pos(:,2)/element_length) * N_element_x, :);
-    ant_elements_num = floor(ant_pos(:,1)/element_length) + ... 
-        1 + floor(ant_pos(:,2)/element_length) * N_element_x;
-    
-    %find the 8 neighbouring elements [right-middle, right-top,
-    % middle-top, left-top, left-middle, left-bottom, middle-bottom,
-    % right-bottom]
-    
-    ant_element_neighbours = [ant_elements_num+1, ant_elements_num+1+N_element_x, ant_elements_num+N_element_x, ...
-        ant_elements_num+N_element_x-1, ant_elements_num-1, ant_elements_num-N_element_x-1, ant_elements_num-N_element_x,...
-        ant_elements_num-N_element_x+1];
-    
     
     if it > release_delay
-        delayed_ant_elements = element(floor(delayed_ant_pos(:,1)/element_length) + ... 
-        1 + floor(delayed_ant_pos(:,2)/element_length) * N_element_x, :);
+        delayed_ant_elements_num = floor(delayed_ant_pos(:,1)/element_length) + ... 
+        1 + floor(delayed_ant_pos(:,2)/element_length) * N_element_x;
     end
     
     %calculate pheronome levels each ant sees. 
@@ -363,20 +403,34 @@ for it = 1:N_time_steps
     end
     %------Activate pheremone production.  Simply on if you have food, else off-----
     if it>release_delay
-    pheromone_elements = delayed_ant_elements(ant_has_food,:); 
-    if any(pheromone_elements)
-        for i=1:4
-            pheromones(pheromone_elements(:,i)) =  pheromones(pheromone_elements(:,i)) + deposition_rate;
+    pheromone_elements = delayed_ant_elements_num(ant_has_food); 
+    pheromone_elements_withNeighbours = [delayed_ant_elements_num(ant_has_food) element_neighbours(delayed_ant_elements_num(ant_has_food),:)]; 
+    
+   
+    
+    if any(pheromone_elements_withNeighbours)
+        for j = 1:9
+            for i=1:4
+                r = sqrt((delayed_ant_pos(ant_has_food,1)-node(element(pheromone_elements_withNeighbours(:,j),i),1)).^2 ...
+        + (delayed_ant_pos(ant_has_food,2)-node(element(pheromone_elements_withNeighbours(:,j),i),2)).^2);
+                pheromones(element(pheromone_elements,i)) =  pheromones(element(pheromone_elements,i)) + deposition_rate./r;
+            end
         end
     end
+    
+%     if any(pheromone_elements)
+%         for i=1:4
+%             pheromones(element(pheromone_elements,i)) =  pheromones(element(pheromone_elements,i)) + deposition_rate;
+%         end
+%     end
     %-----maximum pheromone level-----
     if p.max_pheromone
         pheromones(pheromones > p.max_pheromone) = p.max_pheromone;
     end
     
     %-----free production of pheromones without food
-    for i=1:4
-        pheromones(delayed_ant_elements(~ant_has_food,i)) =  pheromones(delayed_ant_elements(~ant_has_food,i)) + p.free_deposition_rate;
+    for i=1:4  
+        pheromones(element(delayed_ant_elements_num(~ant_has_food),i)) =  pheromones(element(delayed_ant_elements_num(~ant_has_food),i)) + p.free_deposition_rate;
     end
     %Pheromone volatility
     pheromones = pheromones - pheromones.*ones(numnode,1)*evap_rate*dt;
