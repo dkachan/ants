@@ -50,10 +50,8 @@ element_list = (1:numelem)';
 element_neighbours = [element_list+1, element_list+1+N_element_x, element_list+N_element_x, ...
     element_list+N_element_x-1, element_list-1, element_list-N_element_x-1, element_list-N_element_x,...
     element_list-N_element_x+1];
-% element_neighbours(element_neighbours<0) = element_neighbours(element_neighbours<0) + N_element_x;
+
 % Adjust for periodic boundary conditions
-
-
 if p.periodic_boundaries 
     element_neighbours(bot_elem, 6:8) = [element_list(bot_elem)-1 element_list(bot_elem) element_list(bot_elem)+1] + (N_element_x-1)*N_element_y;
     element_neighbours(right_elem, [1 2 8]) = [element_list(right_elem) element_list(right_elem)+N_element_x element_list(right_elem)-N_element_x]-(N_element_x-1);
@@ -71,12 +69,8 @@ if p.periodic_boundaries
     
 end
 
-% 
-% element_neighbours(1,:)
-% element_neighbours(100,:)
-% element_neighbours(10000,:)
-% element_neighbours(9901,:)
-% pause
+nodes2consider = [1:4, 2, 3, 3, 3, 4, 4, 4, 1, 1, 1, 2, 2];
+number_of_nodes2consider = [4,2,1,2,1,2,1,2,1];
 %------Basis vectors & gradient------
 [N,dNdxi]=lagrange_basis(elemType,[0 0]);
 dNdx  = dNdxi/(node(element(1,:),:)'*dNdxi);
@@ -405,19 +399,21 @@ for it = 1:N_time_steps
     if it>release_delay
     pheromone_elements = delayed_ant_elements_num(ant_has_food); 
     pheromone_elements_withNeighbours = [delayed_ant_elements_num(ant_has_food) element_neighbours(delayed_ant_elements_num(ant_has_food),:)]; 
+ 
     
-   
-    
+    n=0;
     if any(pheromone_elements_withNeighbours)
         for j = 1:9
-            for i=1:4
-                r = sqrt((delayed_ant_pos(ant_has_food,1)-node(element(pheromone_elements_withNeighbours(:,j),i),1)).^2 ...
-        + (delayed_ant_pos(ant_has_food,2)-node(element(pheromone_elements_withNeighbours(:,j),i),2)).^2);
-                pheromones(element(pheromone_elements,i)) =  pheromones(element(pheromone_elements,i)) + deposition_rate./r;
+            for i = 1:number_of_nodes2consider(j);
+                n = n+1;
+                ni = nodes2consider(n);
+                r = sqrt((delayed_ant_pos(ant_has_food,1)-node(element(pheromone_elements_withNeighbours(:,j),ni),1)).^2 ...
+        + (delayed_ant_pos(ant_has_food,2)-node(element(pheromone_elements_withNeighbours(:,j),ni),2)).^2);
+                pheromones(element(pheromone_elements,ni)) =  pheromones(element(pheromone_elements,ni)) + deposition_rate./r;
             end
         end
     end
-    
+   
 %     if any(pheromone_elements)
 %         for i=1:4
 %             pheromones(element(pheromone_elements,i)) =  pheromones(element(pheromone_elements,i)) + deposition_rate;
