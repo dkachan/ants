@@ -454,11 +454,11 @@ for it = 1:N_time_steps
     if  show_figure && mod(it,display_interval) == 0
         ant_loc_plot = plot(ant_pos(:,1),ant_pos(:,2),'ro');
         xlim([0,Lx]);
-    ylim([0,Ly]);
+        ylim([0,Ly]);
         if any(ant_has_food)
             ants_with_food_plot =plot(ant_pos(ant_has_food,1),ant_pos(ant_has_food,2),'gx','LineWidth',3);
             xlim([0,Lx]);
-    ylim([0,Ly]);
+        ylim([0,Ly]);
         end     
         if show_quiver
             pheromone_gradient_el = pheromones(element)*dNdx ;
@@ -485,13 +485,30 @@ for it = 1:N_time_steps
     end
     
     
-    %----------Real time visualization-----------
+    %----------Pheronome visualization (time consuming)-----------
     if  show_figure && mod(it,display_pheromones_interval) == 0
         figure(2)
         clf(2)
+        hold on
         if show_pheromones
             plot_field(node,element,'Q4',pheromones);
         end
+        plot(ant_pos(:,1),ant_pos(:,2),'ro');
+        xlim([0,Lx]);
+        ylim([0,Ly]);
+        if any(ant_has_food)
+            ants_with_food_plot =plot(ant_pos(ant_has_food,1),ant_pos(ant_has_food,2),'gx','LineWidth',3);
+            xlim([0,Lx]);
+        ylim([0,Ly]);
+        end 
+        if food_radius
+            circle(food_center(1),food_center(2),food_radius);
+        end
+        if food_boundary_radius
+            circle(food_boundary_center(1),food_boundary_center(2),food_boundary_radius);
+        end
+        circle(nest_center(1),nest_center(2),nest_radius);
+        
         pause
     end
     
