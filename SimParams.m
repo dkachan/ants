@@ -19,7 +19,7 @@ classdef SimParams
         N_time_steps = 10000;
         dt = 1;
         ant_number = 2000;
-        init_ant_variance = 2;
+        init_ant_variance = 0.1;
         periodic_boundaries = true;
 
         % +++++++++++++++++++++++++++++
@@ -39,7 +39,7 @@ classdef SimParams
         reversal_after_food = false;
         ballistic_coupling = true;
         reverse_at_food = true;
-        angle_max = pi/20;
+        angle_max = pi/2;
         gamma = 2;
         % +++++++++++++++++++++++++++++
         %         Pheromone model
@@ -49,7 +49,7 @@ classdef SimParams
         max_pheromone = false;
         free_deposition_rate = 0;
         release_delay = 10;
-
+        trail_angle = 0;
         % +++++++++++++++++++++++++++++
         %             Geometry
         % +++++++++++++++++++++++++++++
